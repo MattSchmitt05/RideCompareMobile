@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:behaviors="clr-namespace:RideCompare.Behaviors;assembly=RideCompare"
+             xmlns:converters="clr-namespace:RideCompare.Converters;assembly=RideCompare"
+             x:Class="RideCompare.Views.LocationsPage">
+    
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:SelectedItemConverter x:Key="SelectedItemConverter"/>
+            <converters:TextChangedConverter x:Key="TextChangedConverter"/>
+        </ResourceDictionary>
+    </ContentPage.Resources>
+        
+    <Grid RowSpacing="1">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="50"/>
+        <RowDefinition Height="50"/>
+        <RowDefinition Height="20"/>
+        <RowDefinition Height="50"/>
+        <RowDefinition Height="*"/>
+      </Grid.RowDefinitions>
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+      </Grid.ColumnDefinitions>
+            
+        <Label Text="From"
+               Margin="10,30,0,0"
+               Grid.Row="0"
+               Grid.Column="0"/>
+        
+        <Label Text="My Location"
+               Margin="10,0,0,0"
+               TextColor="#007AFF"
+               Grid.Row="1"
+               Grid.Column="0"/>
+        
+        <Label Text="To"
+               Margin="10,0,0,0"
+               Grid.Row="2"
+               Grid.Column="0"/>
+        
+        <Entry x:Name="AddressEntry"
+               Margin="10,0"
+               Placeholder="Destination"
+               Text="{Binding DestinationAddress, Mode=TwoWay}"
+               IsSpellCheckEnabled="true"
+               IsTextPredictionEnabled="true"
+               Grid.Row="3"
+               Grid.Column="0">
+            <Entry.Behaviors>
+                <behaviors:EventToCommandBehavior EventName="TextChanged"
+                                              Command="{Binding TextChangedCommand}"
+                                              CommandParameter="{Binding Source={x:Reference AddressEntry}, Path=Text}"
+                                              Converter="{StaticResource TextChangedConverter}"/>
+            </Entry.Behaviors>
+        </Entry>
+        
+        <ListView x:Name="SearchResultsListView"
+                  ItemsSource="{Binding Places}"
+                  IsVisible="{Binding IsSearchResultsVisible, Mode=TwoWay}"
+                  Grid.Row="4"
+                  Grid.Column="0">
+            <ListView.Behaviors>
+                <behaviors:EventToCommandBehavior EventName="ItemSelected"
+                                              Command="{Binding SelectedItemCommand}"
+                                              CommandParameter="{Binding Source={x:Reference SearchResultsListView}, Path=SelectedItem}"
+                                              Converter="{StaticResource SelectedItemConverter}"/>
+            </ListView.Behaviors>
+        </ListView>
+        
+    </Grid>
+</ContentPage>

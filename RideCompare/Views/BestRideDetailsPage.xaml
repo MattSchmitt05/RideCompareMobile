@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+             x:Class="RideCompare.Views.BestRideDetailsPage"
+             Title="Best Ride Details">
+    
+    <ContentPage.Content>
+        <Grid RowSpacing="30" Padding="10,10">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="20"/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="50"/>
+                <RowDefinition Height="50"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>  
+            </Grid.ColumnDefinitions>
+            <!-- Lowest ride cost -->
+            <Label Text="{Binding LowestCostDetails}"
+                   Grid.Row="0"
+                   Grid.Column="0"/>
+            <!-- Shortest ride eta -->
+            <Label Text="{Binding ShortestEtaDetails}"
+                   Grid.Row="1"
+                   Grid.Column="0"/>
+            <!-- Rideshare app buttons -->
+            <Button Text="Open Lyft"
+                    Grid.Row="3"
+                    Grid.Column="0"
+                    Command="{Binding OpenLyftCommand}"/>
+            <Button Text="Open Uber"
+                    Grid.Row="4"
+                    Grid.Column="0"
+                    Command="{Binding OpenUberCommand}"/>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

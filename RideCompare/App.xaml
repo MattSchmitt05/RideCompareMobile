@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<prism:PrismApplication xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" 
+             x:Class="RideCompare.App"
+             xmlns:prism="clr-namespace:Prism.Unity;assembly=Prism.Unity.Forms">
+     <prism:PrismApplication.Resources>
+        <!-- Application resource dictionary -->
+        <ResourceDictionary>
+          <!-- Pallete -->     
+          <Color x:Key="primary-back-title-color">#007AFF</Color>
+          <Color x:Key="primary-title-color">#FFFFFF</Color>
+          <!-- Pallete-end -->  
+          <Style ApplyToDerivedTypes="true" TargetType="NavigationPage">
+                <Setter Property="BarBackgroundColor" Value="{StaticResource Key=primary-back-title-color}"/>
+                <Setter Property="BarTextColor" Value="{StaticResource Key=primary-title-color}"/>
+          </Style>
+        </ResourceDictionary>
+    </prism:PrismApplication.Resources>
+</prism:PrismApplication>
