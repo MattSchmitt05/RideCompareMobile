@@ -7,9 +7,9 @@ namespace RideCompare.Services.Locale
     /// Geolocation service that provides geolocation data from
     /// the device's current location.
     /// </summary>
-    internal static class GeolocationService
+    internal sealed class GeolocationService : GeolocationServiceBase
     {
-        public static async Task<Location> GetDeviceLocation()
+        protected override async Task<Location> GetDeviceLocationAsyncCore()
         {
             return await Geolocation.GetLastKnownLocationAsync();
         }

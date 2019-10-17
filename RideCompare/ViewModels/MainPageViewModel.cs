@@ -5,8 +5,8 @@ using System.Windows.Input;
 using Prism.Navigation;
 using RideCompare.Models;
 using RideCompare.Services.Deeplinking;
-using RideCompare.Services.Dialog;
 using RideCompare.Services.Locale;
+using RideCompare.Services.Navigation;
 using RideCompare.Services.RideCompare;
 using Xamarin.Forms;
 using Xamarin.Forms.GoogleMaps;
@@ -45,10 +45,19 @@ namespace RideCompare.ViewModels
             set { _destinationAddress = value; RaisePropertyChanged("DestinationAddress"); } 
         }
 
-        public ICommand FocusedCommand => new Command(async () => await NavigateToLocationsPage());
+        private GeolocationServiceBase _geolocationService;
+        private GeolocationServiceBase GeolocationService => _geolocationService ?? (_geolocationService = ServiceLocator.CreateGeolocationService());
+
+        private RideCompareServiceBase _rideCompareService;
+        private RideCompareServiceBase RideCompareService => _rideCompareService ?? (_rideCompareService = ServiceLocator.CreateRideCompareService());
+
+        private DeeplinkingServiceBase _deeplinkingService;
+        private DeeplinkingServiceBase DeeplinkingService => _deeplinkingService ?? (_deeplinkingService = ServiceLocator.CreateDeeplinkingService());
+
+        public ICommand FocusedCommand => new Command(() => NavigateToLocationsPage());
         public ICommand RideCompareCommand => new Command(async () => await GetBestRide());
 
-        public MainPageViewModel(INavigationService navigationService)
+        public MainPageViewModel(IViewNavigationService navigationService)
             : base(navigationService)
         {
 
@@ -77,25 +86,24 @@ namespace RideCompare.ViewModels
                 }
                 else if (PinCollection?.Count == 0)
                 {
-                    var location = await GeolocationService.GetDeviceLocation();
+                    var location = await GeolocationService.GetDeviceLocationAsync();
                     MapPosition = new Position(location.Latitude, location.Longitude);
                     PinCollection.Add(new Pin { Position = MapPosition, Type = PinType.Generic, Label = "My Location" });
                     IsButtonEnabled = false;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                await DialogService.ShowAlert("Unable to get device location");
+                await DialogService.ShowAlertAsync("Unable to get device location", "Best Ride", "OK");
             }
         }
 
-        private async Task NavigateToLocationsPage()
+        private void NavigateToLocationsPage()
         {
             if (PinCollection?.Count > 0)
             {
                 var myLocation = PinCollection[0].Position;
-                await NavigationService
-                    .NavigateAsync("LocationsPage", new NavigationParameters($"startLat={myLocation.Latitude}&startLng={myLocation.Longitude}"));
+                ViewNavigationService.NavigateTo("LocationsPage", new NavigationParameters($"startLat={myLocation.Latitude}&startLng={myLocation.Longitude}"));
             }
         }
 
@@ -104,18 +112,17 @@ namespace RideCompare.ViewModels
             try
             {
                 DialogService.ShowLoading();
-                var rideCompareService = new RideCompareService();
-                var results = await rideCompareService.GetBestRide(PinCollection);
+                var results = await RideCompareService.GetBestRideAsync(PinCollection);
                 DialogService.HideLoading();
                 await NavigateToRideshareApp(results);
             }
-            catch (Exception ex)
+            catch
             {
                 DialogService.HideLoading();
-                await DialogService.ShowAlert("Something went wrong. Unable to get a best ride. \n \n Please try again.");
+                await DialogService.ShowAlertAsync("Something went wrong. Unable to get a best ride. \n \n Please try again.", "Best Ride", "OK");
             }
         }
-
+        
         private async Task NavigateToRideshareApp(RideCompareResponse rideCompareResponse)
         {
             var bestRide = rideCompareResponse.BestRide;
@@ -124,27 +131,25 @@ namespace RideCompare.ViewModels
             var startLng = PinCollection[0].Position.Longitude;
             var endLat = PinCollection[1].Position.Latitude;
             var endLng = PinCollection[1].Position.Longitude;
-            var deepLinkingService = new DeeplinkingService(startLat, startLng, endLat, endLng);
 
             switch (bestRide.RideShareProvider)
             {
                 case "Lyft":
-                    await DialogService.ShowAlert("Lyft is offering the Best Ride! \n We will take you to Lyft.");
-                    deepLinkingService.OpenLyft();
+                    await DialogService.ShowAlertAsync("Lyft is offering the Best Ride! \n We will take you to Lyft.", "Best Ride", "OK");
+                    DeeplinkingService.OpenLyft(startLat, startLng, endLat, endLng);
                     break;
                 case "Uber":
-                    await DialogService.ShowAlert("Uber is offering the Best Ride! \n We will take you to Uber.");
-                    deepLinkingService.OpenUber();
+                    await DialogService.ShowAlertAsync("Uber is offering the Best Ride! \n We will take you to Uber.", "Best Ride", "OK");
+                    DeeplinkingService.OpenUber(startLat, startLng, endLat, endLng);
                     break;
                 default:
-                    await DialogService.ShowAlert("No Best Ride was found. \n We will show you what we found.");
-                    await NavigationService
-                        .NavigateAsync("BestRideDetailsPage", new NavigationParameters($"cost={bestRide.RideCost}" +
-                                                                                       $"&costProvider={bestRide.LowestRideCostProvider}" +
-                        	                                                           $"&eta={bestRide.RideEta}" +
-                                                                                       $"&etaProvider={bestRide.ShortestRideEtaProvider}" +
-                                                                                       $"&startLat={startLat}&startLng={startLng}" +
-                                                                                       $"&endLat={endLat}&endLng={endLng}"));
+                    await DialogService.ShowAlertAsync("No Best Ride was found. \n We will show you what we found.", "Best Ride", "OK");
+                    ViewNavigationService.NavigateTo("BestRideDetailsPage", new NavigationParameters($"cost={bestRide.RideCost}" +
+                                                                                                    $"&costProvider={bestRide.LowestRideCostProvider}" +
+                        	                                                                        $"&eta={bestRide.RideEta}" +
+                                                                                                    $"&etaProvider={bestRide.ShortestRideEtaProvider}" +
+                                                                                                    $"&startLat={startLat}&startLng={startLng}" +
+                                                                                                    $"&endLat={endLat}&endLng={endLng}"));
                     break;
             }
         }

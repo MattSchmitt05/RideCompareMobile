@@ -5,7 +5,7 @@ using GooglePlacesApi.Models;
 
 namespace RideCompare.Services.Locale
 {
-    internal static class PlacePredictionService
+    internal sealed class PlacePredictionService : PlacePredictionServiceBase
     {
         private static readonly GoogleApiSettings _settings = GoogleApiSettings.Builder
                                             .WithApiKey("")
@@ -14,7 +14,7 @@ namespace RideCompare.Services.Locale
 
         private static readonly GooglePlacesApiService _service = new GooglePlacesApiService(_settings);
 
-        public static async Task<ObservableCollection<string>> GetPredictions(string searchText)
+        protected override async Task<ObservableCollection<string>> GetPredictionsAsyncCore(string searchText)
         {
             if (string.IsNullOrEmpty(searchText))
                 return new ObservableCollection<string>();

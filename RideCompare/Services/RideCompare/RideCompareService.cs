@@ -11,7 +11,7 @@ using Xamarin.Forms.GoogleMaps;
 
 namespace RideCompare.Services.RideCompare
 {
-    internal sealed class RideCompareService
+    internal sealed class RideCompareService : RideCompareServiceBase
     {
         private readonly HttpClient _httpClient;
         private readonly string _baseAddress = Settings.RideCompareBaseAddress;
@@ -30,7 +30,7 @@ namespace RideCompare.Services.RideCompare
             return httpClient;
         }
 
-        public async Task<RideCompareResponse> GetBestRide(ObservableCollection<Pin> locations)
+        protected override async Task<RideCompareResponse> GetBestRideAsyncCore(ObservableCollection<Pin> locations)
         {
             var httpContent = GetHttpContent(locations);
             var httpResponse = await _httpClient.PostAsync(_baseAddress + "/api/ridecompare", httpContent);

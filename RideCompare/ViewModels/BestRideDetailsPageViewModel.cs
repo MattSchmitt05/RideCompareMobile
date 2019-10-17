@@ -1,6 +1,7 @@
 ﻿using System.Windows.Input;
 using Prism.Navigation;
 using RideCompare.Services.Deeplinking;
+using RideCompare.Services.Navigation;
 using Xamarin.Forms;
 
 namespace RideCompare.ViewModels
@@ -30,10 +31,13 @@ namespace RideCompare.ViewModels
             set { _shortestEtaDetails = value; RaisePropertyChanged("ShortestEtaDetails"); } 
         }
 
+        private DeeplinkingServiceBase _deepLinkingService;
+        private DeeplinkingServiceBase DeeplinkingService => _deepLinkingService ?? (_deepLinkingService = ServiceLocator.CreateDeeplinkingService());
+
         public ICommand OpenLyftCommand => new Command(() => OpenLyftApp());
         public ICommand OpenUberCommand => new Command(() => OpenUberApp());
 
-        public BestRideDetailsPageViewModel(INavigationService navigationService) 
+        public BestRideDetailsPageViewModel(IViewNavigationService navigationService) 
             : base(navigationService)
         {
 
@@ -82,14 +86,12 @@ namespace RideCompare.ViewModels
 
         private void OpenLyftApp()
         {
-            var deepLinkingService = new DeeplinkingService(_startLat, _startLng, _endLat, _endLng);
-            deepLinkingService.OpenLyft();
+            DeeplinkingService.OpenLyft(_startLat, _startLng, _endLat, _endLng);
         }
 
         private void OpenUberApp()
         {
-            var deepLinkingService = new DeeplinkingService(_startLat, _startLng, _endLat, _endLng);
-            deepLinkingService.OpenUber();
+            DeeplinkingService.OpenUber(_startLat, _startLng, _endLat, _endLng);
         }
     }
 }

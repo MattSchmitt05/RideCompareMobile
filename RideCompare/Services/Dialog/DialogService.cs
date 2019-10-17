@@ -3,23 +3,23 @@ using Acr.UserDialogs;
 
 namespace RideCompare.Services.Dialog
 {
-    internal static class DialogService
+    internal sealed class DialogService : DialogServiceBase
     {
-        public static void ShowLoading()
+        protected override void ShowLoadingCore()
         {
             UserDialogs.Instance.ShowLoading();
             return;
         }
 
-        public static void HideLoading()
+        protected override void HideLoadingCore()
         {
             UserDialogs.Instance.HideLoading();
             return;
         }
 
-        public async static Task ShowAlert(string message)
+        protected override async Task ShowAlertAsyncCore(string message, string title, string cancelButton)
         {
-            await UserDialogs.Instance.AlertAsync(message, "Best Ride", "OK");
+            await UserDialogs.Instance.AlertAsync(message, title, cancelButton);
         }
     }
 }

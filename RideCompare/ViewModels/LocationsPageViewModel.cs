@@ -3,11 +3,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using RideCompare.Services.Dialog;
 using RideCompare.Services.Locale;
 using Xamarin.Forms;
 using Xamarin.Essentials;
 using Prism.Navigation;
+using RideCompare.Services.Navigation;
+using RideCompare.Services.DistanceCalculation;
 
 namespace RideCompare.ViewModels
 {
@@ -26,10 +27,19 @@ namespace RideCompare.ViewModels
         private ObservableCollection<string> _places;
         public ObservableCollection<string> Places { get => _places; set { _places = value; RaisePropertyChanged("Places"); } }
 
+        private DistanceCalculationServiceBase _distanceCalculationService;
+        private DistanceCalculationServiceBase DistanceCalculationService => _distanceCalculationService ?? (_distanceCalculationService = ServiceLocator.CreateDistanceCalculationService());
+
+        private GeocodingServiceBase _geocodingService;
+        private GeocodingServiceBase GeocodingService => _geocodingService ?? (_geocodingService = ServiceLocator.CreateGeocodingService());
+
+        private PlacePredictionServiceBase _placePredictionService;
+        private PlacePredictionServiceBase PlacePredictionService => _placePredictionService ?? (_placePredictionService = ServiceLocator.CreatePlacePredictionService());
+
         public ICommand TextChangedCommand => new Command<string>(async (text) => await GetPlacePredictions(text));
         public ICommand SelectedItemCommand => new Command<string>(async (text) => await GetSelectedPlace(text));
 
-        public LocationsPageViewModel(INavigationService navigationService)
+        public LocationsPageViewModel(IViewNavigationService navigationService)
             : base(navigationService)
         {
 
@@ -51,7 +61,7 @@ namespace RideCompare.ViewModels
             {
                 if (DestinationAddress?.Length > 0 && text?.Length > 0)
                 {
-                    Places = await PlacePredictionService.GetPredictions(text);
+                    Places = await PlacePredictionService.GetPredictionsAsync(text);
                     IsSearchResultsVisible = Places.Count > 0;
                 }
                 else
@@ -61,9 +71,9 @@ namespace RideCompare.ViewModels
                     DestinationAddress = null;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                await DialogService.ShowAlert("Something went wrong. Unable to get places.");
+                await DialogService.ShowAlertAsync("Something went wrong. Unable to get places.", "Best Ride", "OK");
             }
         }
 
@@ -74,24 +84,17 @@ namespace RideCompare.ViewModels
                 DestinationAddress = place;
                 IsSearchResultsVisible = false;
 
-                var locations = await GeocodingService.GetLocationsFromAddress(place);
+                var locations = await GeocodingService.GetLocationsFromAddressAsync(place);
                 var firstLocation = locations.FirstOrDefault();
-                _selectedPlace = new Location(firstLocation.Latitude, firstLocation.Longitude); 
+                _selectedPlace = new Location(firstLocation.Latitude, firstLocation.Longitude);
+                _distance = DistanceCalculationService.CalculateDistanceApart(_startingLocation, _selectedPlace, DistanceUnits.Miles);
 
-                CalculateDistanceApart();
-
-                await NavigationService
-                    .GoBackToRootAsync(new NavigationParameters($"endLat={_selectedPlace.Latitude}&endLng={_selectedPlace.Longitude}&address={_destinationAddress}&distance={_distance}"));
+                await ViewNavigationService.NavigateToRootPageAsync(new NavigationParameters($"endLat={_selectedPlace.Latitude}&endLng={_selectedPlace.Longitude}&address={_destinationAddress}&distance={_distance}"));
             }
-            catch (Exception ex)
+            catch
             {
-                await DialogService.ShowAlert("Something went wrong. Unable to get selected place.");
+                await DialogService.ShowAlertAsync("Something went wrong. Unable to get selected place.", "Best Ride", "OK");
             }
-        }
-
-        private void CalculateDistanceApart()
-        {
-            _distance = Location.CalculateDistance(_startingLocation, _selectedPlace, DistanceUnits.Miles);
         }
     }
 }

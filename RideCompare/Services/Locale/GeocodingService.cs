@@ -8,14 +8,14 @@ namespace RideCompare.Services.Locale
     /// Geocoding service that provides geolocation data from an
     /// entered address.
     /// </summary>
-    internal static class GeocodingService
+    internal sealed class GeocodingService : GeocodingServiceBase
     {
-        public static async Task<IEnumerable<Location>> GetLocationsFromAddress(string address)
+        protected override async Task<IEnumerable<Location>> GetLocationsFromAddressAsyncCore(string address)
         {
             return await Geocoding.GetLocationsAsync(address);
         }
 
-        public static async Task<IEnumerable<Placemark>> GetPlacemarks(double lat, double lng)
+        protected override async Task<IEnumerable<Placemark>> GetPlacemarksAsyncCore(double lat, double lng)
         {
             return await Geocoding.GetPlacemarksAsync(lat, lng);
         }
