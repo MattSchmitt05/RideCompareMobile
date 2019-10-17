@@ -3,9 +3,12 @@ using Prism.Ioc;
 using Prism.Unity;
 using RideCompare.ViewModels;
 using RideCompare.Views;
+using System.Runtime.CompilerServices;
 using Xamarin.Forms.Xaml;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
+[assembly: InternalsVisibleTo("RideCompare.Tests.AcceptanceTests")]
+[assembly: InternalsVisibleTo("RideCompare.Tests.EndToEndTests")]
 namespace RideCompare
 {
     public partial class App : PrismApplication
